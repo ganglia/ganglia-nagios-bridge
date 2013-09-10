@@ -152,7 +152,7 @@ class GangliaHandler(xml.sax.ContentHandler):
             cache_key = (self.cluster_idx, self.host_name)
             if cache_key in self.hosts_cache:
                 self.host_idx = self.hosts_cache[cache_key]
-                self.metrics = self.clusters_c[cluster_idx][1][self.host_idx][1]
+                self.metrics = self.clusters_c[self.cluster_idx][1][self.host_idx][1]
                 return
             for idx, host_def in enumerate(self.hosts):
                 if host_def[0].match(self.host_name):
