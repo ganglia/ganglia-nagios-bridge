@@ -66,7 +66,7 @@ class PassiveGenerator:
             effective_dmax = force_dmax
         if effective_dmax > 0 and metric_tn > effective_dmax:
             service_state = 3
-        if isinstance(metric_value, str):
+        elif isinstance(metric_value, str):
             service_state = 0
         elif 'crit_below' in metric_def and metric_value < metric_def['crit_below']:
             service_state = 2
