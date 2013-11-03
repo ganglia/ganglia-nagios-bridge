@@ -43,8 +43,9 @@ class SocketInputSource:
 
 # interprets metric values to generate Nagios passive notifications
 class PassiveGenerator:
-    def __init__(self, force_dmax):
+    def __init__(self, force_dmax, tmax_grace):
         self.force_dmax = force_dmax
+        self.tmax_grace = tmax_grace
         
         # Nagios is quite fussy about the filename, it must be
         # a 7 character name starting with 'c'
@@ -64,7 +65,10 @@ class PassiveGenerator:
         effective_dmax = metric_dmax
         if(self.force_dmax > 0):
             effective_dmax = force_dmax
+        effective_tmax = metric_tmax + self.tmax_grace
         if effective_dmax > 0 and metric_tn > effective_dmax:
+            service_state = 3
+        elif metric_tn > effective_tmax:
             service_state = 3
         elif isinstance(metric_value, str):
             service_state = 0
@@ -204,8 +208,9 @@ if __name__ == '__main__':
             help='configuration file', default='/etc/ganglia/nagios-bridge.conf')
         args = parser.parse_args()
 
-        # read the configuration file
-        
+        # read the configuration file, setting some defaults first
+        force_dmax = 0
+        tmax_grace = 60
         execfile(args.config_file)
 
         # compile the regular expressions
@@ -226,7 +231,7 @@ if __name__ == '__main__':
         sock = socket.create_connection((gmetad_host, gmetad_port))
         # set up the SAX parser
         parser = xml.sax.make_parser()
-        pg = PassiveGenerator(force_dmax)
+        pg = PassiveGenerator(force_dmax, tmax_grace)
         parser.setContentHandler(GangliaHandler(clusters_c, pg))
         # run the main program loop
         parser.parse(SocketInputSource(sock))
