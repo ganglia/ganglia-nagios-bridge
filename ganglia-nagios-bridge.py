@@ -196,7 +196,7 @@ class GangliaHandler(xml.sax.ContentHandler):
         self.value_handler.process(self.metric, service_name, self.host_name, metric_name, metric_value, metric_tn, metric_tmax, metric_dmax, last_seen)
 
 # main program code
-if __name__ == '__main__':
+if __name__ == '__main__':          
     try:
         # parse command line
         parser = argparse.ArgumentParser(description='read Ganglia XML and generate Nagios check results file')
@@ -221,22 +221,26 @@ if __name__ == '__main__':
                     metrics.append((metric_c, metric_def[1]))
                 hosts.append((host_c, metrics))
             clusters_c.append((cluster_c, hosts))
+    except Exception as e:
+        logging.warn('Failed to read configuration file: %s', e)   
+    while True:
+        try:
+            # connect to the gmetad or gmond
+            sock = socket.create_connection((gmetad_host, gmetad_port))
+            # set up the SAX parser
+            parser = xml.sax.make_parser()
+            pg = PassiveGenerator(force_dmax)
+            parser.setContentHandler(GangliaHandler(clusters_c, pg))
+            # run the main program loop
+            parser.parse(SocketInputSource(sock))
 
-        # connect to the gmetad or gmond
-        sock = socket.create_connection((gmetad_host, gmetad_port))
-        # set up the SAX parser
-        parser = xml.sax.make_parser()
-        pg = PassiveGenerator(force_dmax)
-        parser.setContentHandler(GangliaHandler(clusters_c, pg))
-        # run the main program loop
-        parser.parse(SocketInputSource(sock))
+            # write out for Nagios
+            pg.done()
 
-        # write out for Nagios
-        pg.done()
-
-        # all done
-        sock.close()
-    except socket.error as e:
-        logging.warn('Failed to connect to gmetad: %s', e.strerror)
+            # all done
+            sock.close()
+            time.sleep(60)
+        except socket.error as e:
+            logging.warn('Failed to connect to gmetad: %s', e.strerror)
 
 
