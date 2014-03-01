@@ -35,7 +35,9 @@ Limitations and troubleshooting
 
 Nagios must know about all the hosts and services exported by
 Ganglia.  If it sees things in the checkresults file that it
-doesn't know about, it may fail to process anything in the file.
+doesn't know about, it logs warning messages about them
+but it correctly processes all the things it does
+recognise.
 
 Make sure the hostnames and service names match exactly.
 
