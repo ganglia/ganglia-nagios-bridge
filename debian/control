@@ -1,0 +1,26 @@
+Source: ganglia-nagios-bridge
+Section: net
+Priority: optional
+Maintainer: Debian Monitoring Maintainers <pkg-monitoring-maintainers@lists.alioth.debian.org>
+Uploaders: Daniel Pocock <daniel@pocock.pro>
+Homepage: http://danielpocock.com/ganglia-nagios-bridge
+Build-Depends: debhelper (>= 9.0.0)
+Standards-Version: 3.9.5
+Vcs-Git: git://git.debian.org/pkg-monitoring/ganglia-nagios-bridge.git
+Vcs-Browser: http://git.debian.org/?p=pkg-monitoring/ganglia-nagios-bridge.git;a=summary
+
+Package: ganglia-nagios-bridge
+Architecture: any
+Depends: ${misc:Depends}, python, nagios3 | icinga
+Recommends: gmetad
+Description: cluster monitoring toolkit - scalable Nagios integration
+ ganglia-nagios-bridge brings Ganglia and Nagios together, taking the
+ metrics from Ganglia agents, applying thresholds, deciding when they are
+ in a bad state and mapping them to service definitions in Nagios.
+ Nagios can then display the network state, highlight hotspots and raise
+ notifications in the usual manner.
+ .
+ Using regular expressions in the ganglia-nagios-bridge config and the
+ nagios config files it is possible to enable alerting for thousands of
+ hosts very quickly, with less than 50 lines of config in total.
+

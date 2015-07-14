@@ -1,0 +1,2 @@
+usr/bin/ganglia-nagios-bridge
+nagios-bridge.conf etc/ganglia/

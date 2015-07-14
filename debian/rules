@@ -1,0 +1,15 @@
+#!/usr/bin/make -f
+
+%:
+	dh $@
+
+# Not much to do, just a Python script
+override_dh_auto_build:
+
+override_dh_auto_install:
+	mkdir -p $$(pwd)/debian/tmp/usr/bin
+	cp ganglia-nagios-bridge.py $$(pwd)/debian/tmp/usr/bin/ganglia-nagios-bridge
+	chmod 0755 $$(pwd)/debian/tmp/usr/bin/ganglia-nagios-bridge
+
+override_dh_auto_clean:
+

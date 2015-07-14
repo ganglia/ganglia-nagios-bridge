@@ -1,0 +1,10 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: ganglia-nagios-bridge
+Upstream-Contact: Daniel Pocock <daniel@pocock.com.au>
+Source: git://github.com/ganglia/ganglia-nagios-web.git
+
+Files: *
+Copyright: 2010-2013, Daniel Pocock http://danielpocock.com
+License: GPL-3+
+ The GPL can be found in /usr/share/common-licenses/GPL-3 on your
+ Debian system.
