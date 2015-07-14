@@ -10,7 +10,8 @@ http://danielpocock.com/ganglia-nagios-bridge
 Installation
 ------------
 
-Copy ganglia-nagios-bridge.py to a suitable location (e.g. /usr/local/bin)
+Copy ganglia-nagios-bridge.py to a suitable location (e.g. /usr/local/bin),
+leaving off the '.py' extension.
 
 Declare the services to be monitored in /etc/nagios3/*
   - see the included nagios.cfg for some examples
@@ -18,16 +19,16 @@ Declare the services to be monitored in /etc/nagios3/*
 Copy nagios-bridge.conf to a suitable location (default /etc/ganglia)
 and amend it as required.
 
-Add ganglia-nagios-bridge.py to crontab
-- it can be run every 1 or 5 minutes typically
-- it must run as the nagios user (to create files in the checkresult
-  spool directory)
+Add ganglia-nagios-bridge to crontab
+- it can be run every 1 to 5 minutes typically
+- it must run as the nagios user so it will have permission to create files
+  in the checkresult spool directory
 
 e.g.
 
 cat > /etc/crontab << EOF
 # poll metrics from Ganglia, update Nagios
-* * * * * nagios /usr/local/bin/ganglia-nagios-bridge.py
+* * * * * nagios /usr/local/bin/ganglia-nagios-bridge
 EOF
 
 Limitations and troubleshooting
