@@ -102,6 +102,41 @@ class PassiveGenerator:
         #os.write(self.fh, "\n")
 
 
+class CmdPipePassiveGenerator:
+
+    def __init__(self, force_dmax, tmax_grace, pipe):
+        self.force_dmax = force_dmax
+        self.tmax_grace = tmax_grace
+        self.pipe = open(pipe, 'a')
+
+    def done(self):
+        self.pipe.close()
+
+    def process(self, metric_def, service_name, host, metric_name, metric_value, metric_tn, metric_tmax, metric_dmax, last_seen):
+        effective_dmax = metric_dmax
+        if(self.force_dmax > 0):
+            effective_dmax = force_dmax
+        effective_tmax = metric_tmax + self.tmax_grace
+        if effective_dmax > 0 and metric_tn > effective_dmax:
+            service_state = 3
+        elif metric_tn > effective_tmax:
+            service_state = 3
+        elif isinstance(metric_value, str):
+            service_state = 0
+        elif 'crit_below' in metric_def and metric_value < metric_def['crit_below']:
+            service_state = 2
+        elif 'warn_below' in metric_def and metric_value < metric_def['warn_below']:
+            service_state = 1
+        elif 'crit_above' in metric_def and metric_value > metric_def['crit_above']:
+            service_state = 2
+        elif 'warn_above' in metric_def and metric_value > metric_def['warn_above']:
+            service_state = 1
+        else:
+            service_state = 0
+        cmd = "[" + str(int(time.time())) + "] PROCESS_SERVICE_CHECK_RESULT;" + host + ";" + service_name + ";" + str(service_state) + ";Value = " + str(metric_value)
+        self.pipe.write(cmd + "\n")
+
+
 # SAX event handler for parsing the Ganglia XML stream
 class GangliaHandler(xml.sax.ContentHandler):
     def __init__(self, clusters_c, value_handler):
@@ -231,7 +266,12 @@ if __name__ == '__main__':
         sock = socket.create_connection((gmetad_host, gmetad_port))
         # set up the SAX parser
         parser = xml.sax.make_parser()
-        pg = PassiveGenerator(force_dmax, tmax_grace)
+        if command_pipe is not None:
+            if nagios_result_dir is not None:
+                raise Exception('cannot specify both command_pipe and nagios_result_dir')
+            pg = CmdPipePassiveGenerator(force_dmax, tmax_grace, command_pipe)
+        else:
+            pt = PassiveGenerator(force_dmax, tmax_grace)
         parser.setContentHandler(GangliaHandler(clusters_c, pg))
         # run the main program loop
         parser.parse(SocketInputSource(sock))
