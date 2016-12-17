@@ -11,7 +11,7 @@ Vcs-Browser: http://git.debian.org/?p=pkg-monitoring/ganglia-nagios-bridge.git;a
 
 Package: ganglia-nagios-bridge
 Architecture: any
-Depends: ${misc:Depends}, python, nagios3 | icinga | icinga2
+Depends: ${misc:Depends}, python, icinga2 | icinga | nagios3
 Recommends: gmetad
 Description: cluster monitoring toolkit - scalable Nagios integration
  ganglia-nagios-bridge brings Ganglia and Nagios together, taking the
