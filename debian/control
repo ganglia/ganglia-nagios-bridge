@@ -5,7 +5,7 @@ Maintainer: Debian Monitoring Maintainers <pkg-monitoring-maintainers@lists.alio
 Uploaders: Daniel Pocock <daniel@pocock.pro>
 Homepage: http://danielpocock.com/ganglia-nagios-bridge
 Build-Depends: debhelper (>= 9.0.0)
-Standards-Version: 3.9.5
+Standards-Version: 3.9.8
 Vcs-Git: git://git.debian.org/pkg-monitoring/ganglia-nagios-bridge.git
 Vcs-Browser: http://git.debian.org/?p=pkg-monitoring/ganglia-nagios-bridge.git;a=summary
 
