@@ -186,7 +186,7 @@ class GangliaHandler(xml.sax.ContentHandler):
             self.metrics = None
             self.host_name = attrs['NAME']
             self.host_reported = long(attrs['REPORTED'])
-            if strip_domains:
+            if strip_domains and not self.host_name[0].isdigit():
                 self.host_name = self.host_name.partition('.')[0]
             cache_key = (self.cluster_idx, self.host_name)
             if cache_key in self.hosts_cache:
