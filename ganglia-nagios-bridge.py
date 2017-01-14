@@ -62,6 +62,13 @@ class PassiveGenerator:
         ok_fh.close()
 
     def process(self, metric_def, service_name, host, metric_name, metric_value, metric_tn, metric_tmax, metric_dmax, last_seen):
+        # If the hostname reverse lookup failed on the gmond collector and
+        # it's IP address appears in the XML, we ignore it.
+        # We could potentially find a way to lookup the IP in the
+        # Nagios config and use the correct hostname
+        if(host[0].isdigit()):
+            return
+
         effective_dmax = metric_dmax
         if(self.force_dmax > 0):
             effective_dmax = force_dmax
