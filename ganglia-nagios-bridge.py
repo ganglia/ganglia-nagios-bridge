@@ -266,12 +266,16 @@ if __name__ == '__main__':
         sock = socket.create_connection((gmetad_host, gmetad_port))
         # set up the SAX parser
         parser = xml.sax.make_parser()
+        try:
+            command_pipe
+        except NameError:
+            command_pipe = None
         if command_pipe is not None:
             if nagios_result_dir is not None:
                 raise Exception('cannot specify both command_pipe and nagios_result_dir')
             pg = CmdPipePassiveGenerator(force_dmax, tmax_grace, command_pipe)
         else:
-            pt = PassiveGenerator(force_dmax, tmax_grace)
+            pg = PassiveGenerator(force_dmax, tmax_grace)
         parser.setContentHandler(GangliaHandler(clusters_c, pg))
         # run the main program loop
         parser.parse(SocketInputSource(sock))
