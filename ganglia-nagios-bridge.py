@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 #
 # ganglia-nagios-bridge - transfer Ganglia XML to Nagios checkresults file
 #
@@ -23,8 +23,10 @@
 
 import argparse
 import os
+import random
 import re
 import socket
+import string
 import tempfile
 import time
 import xml.sax
@@ -41,6 +43,9 @@ class SocketInputSource:
     def read(self, buf_size):
         return self.socket.recv(buf_size)
 
+    def close(self):
+        return self.socket.close()
+
 # interprets metric values to generate Nagios passive notifications
 class PassiveGenerator:
     def __init__(self, force_dmax, tmax_grace):
@@ -49,16 +54,18 @@ class PassiveGenerator:
         
         # Nagios is quite fussy about the filename, it must be
         # a 7 character name starting with 'c'
-        tmp_file = tempfile.mkstemp(prefix='c',dir=nagios_result_dir)
-        self.fh = tmp_file[0]
-        self.cmd_file = tmp_file[1]
-        os.write(self.fh, "### Active Check Result File ###\n")
-        os.write(self.fh, "file_time=" + str(int(time.time())) + "\n")
+        characters = string.ascii_letters + string.digits
+        tmp_name = "c" + ''.join(random.choices(characters, k=6))
+        self.cmd_file = os.path.join(nagios_result_dir, tmp_name)
+        self.fh = os.open(self.cmd_file, os.O_WRONLY | os.O_CREAT)
+        s = "### Active Check Result File ###\n" \
+            "file_time=" + str(int(time.time())) + "\n";
+        os.write(self.fh, s.encode(encoding='UTF-8'))
 
     def done(self):
         os.close(self.fh)
         ok_filename = self.cmd_file + ".ok"
-        ok_fh = file(ok_filename, 'a')
+        ok_fh = open(ok_filename, 'a')
         ok_fh.close()
 
     def process(self, metric_def, service_name, host, metric_name, metric_value, metric_tn, metric_tmax, metric_dmax, last_seen):
@@ -90,23 +97,22 @@ class PassiveGenerator:
         else:
             service_state = 0
         #cmd = "[" + str(int(time.time())) + "] PROCESS_SERVICE_CHECK_RESULT;" + host + ";" + service_name + ";" + str(service_state) + ";Value = " + str(metric_value)
-        #os.write(self.fh, cmd + "\n")
-        os.write(self.fh, "\n### Nagios Service Check Result ###\n")
-        os.write(self.fh, "# Time: " + time.asctime() + "\n")
-        os.write(self.fh, "host_name=" + host + "\n")
-        os.write(self.fh, "service_description=" + service_name + "\n")
-        os.write(self.fh, "check_type=0\n")
-        os.write(self.fh, "check_options=0\n")
-        os.write(self.fh, "scheduled_check=1\n")
-        os.write(self.fh, "reschedule_check=1\n")
-        os.write(self.fh, "latency=0.1\n")
-        os.write(self.fh, "start_time=" + str(last_seen) + ".0\n")
-        os.write(self.fh, "finish_time=" + str(last_seen) + ".0\n")
-        os.write(self.fh, "early_timeout=0\n")
-        os.write(self.fh, "exited_ok=1\n")
-        os.write(self.fh, "return_code=" + str(service_state) + "\n")
-        os.write(self.fh, "output=" + service_name + " " + str(metric_value) + "\\n\n")
-        #os.write(self.fh, "\n")
+        s = "\n### Nagios Service Check Result ###\n" \
+            "# Time: " + time.asctime() + "\n" \
+            "host_name=" + host + "\n" \
+            "service_description=" + service_name + "\n" \
+            "check_type=0\n" \
+            "check_options=0\n" \
+            "scheduled_check=1\n" \
+            "reschedule_check=1\n" \
+            "latency=0.1\n" \
+            "start_time=" + str(last_seen) + ".0\n" \
+            "finish_time=" + str(last_seen) + ".0\n" \
+            "early_timeout=0\n" \
+            "exited_ok=1\n" \
+            "return_code=" + str(service_state) + "\n" \
+            "output=" + service_name + " " + str(metric_value) + "\\n\n"
+        os.write(self.fh, s.encode(encoding='UTF-8'))
 
 
 class CmdPipePassiveGenerator:
@@ -192,7 +198,7 @@ class GangliaHandler(xml.sax.ContentHandler):
         if name == "HOST" and self.hosts is not None:
             self.metrics = None
             self.host_name = attrs['NAME']
-            self.host_reported = long(attrs['REPORTED'])
+            self.host_reported = int(attrs['REPORTED'])
             if strip_domains and not self.host_name[0].isdigit():
                 self.host_name = self.host_name.partition('.')[0]
             cache_key = (self.cluster_idx, self.host_name)
@@ -211,7 +217,7 @@ class GangliaHandler(xml.sax.ContentHandler):
         if name == "CLUSTER":
             self.hosts = None
             self.cluster_name = attrs['NAME']
-            self.cluster_localtime = long(attrs['LOCALTIME'])
+            self.cluster_localtime = int(attrs['LOCALTIME'])
             if self.cluster_name in self.clusters_cache:
                 self.cluster_idx = self.clusters_cache[self.cluster_name]
                 self.hosts = self.clusters_c[self.cluster_idx][1]
@@ -253,7 +259,7 @@ if __name__ == '__main__':
         # read the configuration file, setting some defaults first
         force_dmax = 0
         tmax_grace = 60
-        execfile(args.config_file)
+        exec(open(args.config_file).read())
 
         # compile the regular expressions
         clusters_c = []
